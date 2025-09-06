@@ -1,5 +1,4 @@
 sentence-transformers==2.2.2
-huggingface-hub==0.20.3   
 langchain
 flask
 pypdf
@@ -13,3 +12,4 @@ langchain-huggingface
 accelerate
 transformers
 torch
+ 
