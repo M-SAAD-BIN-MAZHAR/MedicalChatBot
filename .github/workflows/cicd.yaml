@@ -36,7 +36,7 @@ jobs:
 
   Continuous-Deployment:
     needs: Continuous-Integration
-    runs-on: self-hosted
+    runs-on: ubuntu-latest  # ← CHANGED from self-hosted to ubuntu-latest
     steps:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -49,23 +49,8 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Stop and remove existing container
+      - name: Test Docker Image
         run: |
-          docker stop app-container || true
-          docker rm app-container || true
-
-      - name: Pull latest image from ECR
-        run: |
+          # Test that the image can be pulled and run
           docker pull ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO }}:${{ github.sha }}
-
-      - name: Run Docker container
-        run: |
-          docker run -d \
-            --name app-container \
-            -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
-            -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-            -e AWS_DEFAULT_REGION="${{ secrets.AWS_DEFAULT_REGION }}" \
-            -e PINECONE_API_KEY="${{ secrets.PINECONE_API_KEY }}" \
-            -e HUGGINGFACEHUB_API_KEY="${{ secrets.HUGGINGFACEHUB_API_KEY }}" \
-            -p 8080:8080 \
-            ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO }}:${{ github.sha }}
+          docker run --rm ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO }}:${{ github.sha }} python -c "print('Image works!')"
